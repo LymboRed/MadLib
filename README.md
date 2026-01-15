@@ -69,4 +69,4 @@ Pour transformer ce script en véritable application autonome :
 - `.gitignore` : Protège vos fichiers sensibles.
 
 ---
-*Développé avec ❤️ par GitHub Copilot - Janvier 2026*
+*Développé sur VSCode avec GH Copilot - Janvier 2026*
