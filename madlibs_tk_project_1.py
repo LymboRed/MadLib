@@ -9,6 +9,57 @@ ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
 
 # -------------------- 🏗️ 2. FONCTIONS PRINCIPALES ------------------------------------------------
+# Dictionnaire des thèmes
+THEMES_DATA = {
+    "Lion King 🦁": {
+        "fields": ["Animal Name", "Job", "First Name", "Thing", "Villain Name", "Place", "Silly Name 1", "Silly Name 2", "Funny Phrase", "Object", "Title"],
+        "template": (
+            "In the heart of the African savannah, a young lion named {} was destined to become a {}. "
+            "One day, his father, King {}, told him: \"Everything the {} touches is our kingdom.\" "
+            "But after a tragic accident caused by {}, he ran away to {}. "
+            "There, he met two unusual friends: {} and {}, who taught him to say {}! "
+            "Years later, he returned to face his past, battle {} with a {}, and reclaim his place as the rightful {}."
+        )
+    },
+    "Space Adventure 🚀": {
+        "fields": ["Pilot Name", "Planet", "Mission", "Alien Species", "Ship Name", "Weapon", "Strange Food", "Droid Name", "Galactic Law", "Star System", "Honorary Rank"],
+        "template": (
+            "Deep in the {}, the brave pilot {} was on a mission to {}. "
+            "After landing on {}, they encountered a friendly {} ship named the {}. "
+            "Suddenly, a swarm of {} attacked! {} grabbed a {} and fought back. "
+            "Their loyal droid {} shouted '{}!' while throwing {} at the enemies. "
+            "In the end, peace was restored, and {} was granted the rank of {}."
+        )
+    },
+    "Medieval Tale ⚔️": {
+        "fields": ["Hero Name", "Kingdom", "Quest", "Mythical Beast", "Magical Item", "Royal Family Member", "Village", "Worst Enemy", "Old Wizard", "Ancient Relic", "Ending Title"],
+        "template": (
+            "In the glorious kingdom of {}, a humble hero named {} set out on a quest to {}. "
+            "Armed only with a {}, they had to face the terrifying {} sent by {}. "
+            "Along the way, they met {}, who gave them a mysterious {}. "
+            "After a long journey through the village of {}, they saved {} and returned home. "
+            "For their bravery, the {} of the Realm now call them the {}."
+        )
+    }
+}
+
+# Fonction pour changer de thème
+def change_theme(choice):
+    # Nettoyer les anciens champs
+    for widget in scroll_frame.winfo_children():
+        widget.destroy()
+    entries.clear()
+    
+    # Créer les nouveaux champs
+    for field in THEMES_DATA[choice]["fields"]:
+        ctk.CTkLabel(scroll_frame, text=field.upper(), font=("SF Pro Text", 10, "bold"),
+                     text_color=TEXT_COLOR).pack(anchor="w", padx=15, pady=(12, 2))
+        entry = ctk.CTkEntry(scroll_frame, placeholder_text=f"Enter {field}...",
+                             fg_color=BG_ENTRY, border_color="#475569", 
+                             height=45, corner_radius=12)
+        entry.pack(fill="x", padx=10, pady=(0, 5))
+        entries.append(entry)
+
 # 💾 Sauvegarder l’histoire
 def save_story():
     story = text_output.get("1.0", tk.END).strip()
@@ -24,32 +75,22 @@ def save_story():
         messagebox.showerror("Erreur", f"Impossible de sauvegarder : {e}")
 
 # 🎬 Générer l’histoire
-# ✅ On vérifie si tous les champs sont remplis. Si non → alerte !
 def generate_story():
-    values = [entry.get() for entry in entries] # Récupere tout ce que l'utilisateur a tapé
-    if not all(values): # Vérifie que tout est remplie
+    values = [entry.get() for entry in entries]
+    if not all(values):
         messagebox.showwarning("Champs manquants", "Merci de remplir tous les champs.")
         return
-    # 🎩 On donne un nom à chaque réponse (comme des variables normales).
-    animal_name, job, first_name, thing, villain_name, place, silly_name_1, silly_name_2, funny_phrase, an_object, title = values
-    # 🧠 On crée l'histoire avec les variables insérées dedans
-    story = (
-        f"In the heart of the African savannah, "
-        f"a young lion named {animal_name} was destined to become a {job}. "
-        f"One day, his father, King {first_name}, told him: "
-        f"\"Everything the {thing} touches is our kingdom.\" "
-        f"But after a tragic accident caused by {villain_name}, "
-        f"he ran away to {place}. "
-        f"There, he met two unusual friends: {silly_name_1} and {silly_name_2}, "
-        f"who taught him to say {funny_phrase}! "
-        f"Years later, he returned to face his past, "
-        f"battle {villain_name} with a {an_object}, "
-        f"and reclaim his place as the rightful {title}."
-    )
-    text_output.config(state='normal') # Active le champs de texte
-    text_output.delete("1.0", tk.END) # Vide l'ancien texte
-    text_output.insert(tk.END, story) # Insère la nouvelle histoire
-    text_output.config(state='disabled') # Re-désactive le champ de texte pour empêcher la modification
+    
+    current_theme = theme_selector.get()
+    template = THEMES_DATA[current_theme]["template"]
+    
+    # On insère les valeurs dans le template du thème actuel
+    story = template.format(*values)
+    
+    text_output.config(state='normal')
+    text_output.delete("1.0", tk.END)
+    text_output.insert(tk.END, story)
+    text_output.config(state='disabled')
 # 🔄 Réinitialiser les champs
 # 🧹 Vide tous les champs de texte
 def reset_fields():
@@ -110,21 +151,25 @@ right_panel = ctk.CTkFrame(main_container, fg_color=BG_SIDE, corner_radius=25)
 right_panel.pack(side="right", fill="both", expand=True)
 
 # -------------------- ✏️ 4. CHAMPS DE SAISIE ----------------------------------------
+ctk.CTkLabel(left_panel, text="SELECT THEME", font=("SF Pro Display", 16, "bold"), 
+             text_color=ACCENT_COLOR).pack(pady=(20, 5))
+
+theme_selector = ctk.CTkOptionMenu(left_panel, values=list(THEMES_DATA.keys()), 
+                                  command=change_theme, fg_color=BG_ENTRY, 
+                                  button_color=ACCENT_COLOR, button_hover_color=GENERATE_COLOR,
+                                  corner_radius=10)
+theme_selector.pack(fill="x", padx=20, pady=(0, 20))
+
 ctk.CTkLabel(left_panel, text="STORY INPUTS", font=("SF Pro Display", 18, "bold"), 
-             text_color=ACCENT_COLOR).pack(pady=(25, 15))
+             text_color=ACCENT_COLOR).pack(pady=(10, 5))
 
 scroll_frame = ctk.CTkScrollableFrame(left_panel, fg_color="transparent", width=320)
 scroll_frame.pack(fill="both", expand=True, padx=15, pady=10)
 
-# Pour chaque champ :
-for field in fields:
-    ctk.CTkLabel(scroll_frame, text=field.upper(), font=("SF Pro Text", 10, "bold"),
-                 text_color=TEXT_COLOR).pack(anchor="w", padx=15, pady=(12, 2))
-    entry = ctk.CTkEntry(scroll_frame, placeholder_text=f"Enter {field}...",
-                         fg_color=BG_ENTRY, border_color="#475569", 
-                         height=45, corner_radius=12)
-    entry.pack(fill="x", padx=10, pady=(0, 5))
-    entries.append(entry)
+entries = []
+
+# Initialisation des champs avec le premier thème
+change_theme(list(THEMES_DATA.keys())[0])
 
 # -------------------- 🔘 5. Boutons stylisés Glass ------------------------------------------------
 btn_container = ctk.CTkFrame(left_panel, fg_color="transparent")
