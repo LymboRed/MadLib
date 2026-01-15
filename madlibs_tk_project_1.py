@@ -1,7 +1,12 @@
 # -------------------- 🧱 1. IMPORTATION DES OUTILS ----------------------------------------
 import tkinter as tk
 from tkinter import messagebox
+import customtkinter as ctk # Pour le look ultra-moderne 2025
 import os
+
+# Configuration globale de CustomTkinter
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
 
 # -------------------- 🏗️ 2. FONCTIONS PRINCIPALES ------------------------------------------------
 # 💾 Sauvegarder l’histoire
@@ -56,21 +61,23 @@ def reset_fields():
     text_output.config(state='disabled')
 
 # -------------------- 🖼️ 3. INTERFACE GRAPHIQUE --------------------------------------------------
-# Couleurs Modernes (Look 2025+ Dark Mode)
-BG_MAIN = "#0f172a"      # Bleu ardoise très sombre
-BG_SIDE = "#1e293b"      # Bleu ardoise moyen
-BG_ENTRY = "#334155"     # Pour les champs de saisie
-TEXT_COLOR = "#f8fafc"   # Blanc cassé
-ACCENT_COLOR = "#38bdf8" # Bleu ciel brillant
-GENERATE_COLOR = "#10b981" # Vert émeraude
-RESET_COLOR = "#ef4444"    # Rouge corail
-SAVE_COLOR = "#f59e0b"     # Ambre
+# Palette de couleurs Glassmorphism
+BG_MAIN = "#0f172a"
+BG_SIDE = "#1e293b"
+BG_ENTRY = "#334155"
+ACCENT_COLOR = "#38bdf8"
+TEXT_COLOR = "#f8fafc"
 
-# Création de la fenêtre principale
-root = tk.Tk()
+# Couleurs des boutons (plus sombres pour le contraste)
+GENERATE_COLOR = "#059669" # Vert Emeraude sombre
+SAVE_COLOR = "#d97706"     # Orange Ambre sombre
+RESET_COLOR = "#dc2626"    # Rouge sombre
+
+# Fenêtre principale
+root = ctk.CTk()
 root.title("Mad Libs - Lion King Edition")
-root.geometry("1000x650")
-root.configure(bg=BG_MAIN)
+root.geometry("1100x700")
+root.configure(fg_color=BG_MAIN)
 
 # Chargement de l'icône (si le fichier existe)
 try:
@@ -93,82 +100,56 @@ entry_style = {
 }
 
 # Main Containers with padding
-main_container = tk.Frame(root, bg=BG_MAIN)
-main_container.pack(fill="both", expand=True, padx=20, pady=20)
+main_container = ctk.CTkFrame(root, fg_color=BG_MAIN)
+main_container.pack(fill="both", expand=True, padx=30, pady=30)
 
-left_frame = tk.Frame(main_container, width=380, bg=BG_SIDE, padx=20, pady=20)
-right_frame = tk.Frame(main_container, bg=BG_MAIN, padx=20)
+left_panel = ctk.CTkFrame(main_container, fg_color=BG_SIDE, corner_radius=25)
+left_panel.pack(side="left", fill="both", expand=False, padx=(0, 20))
 
-left_frame.pack(side="left", fill="both", expand=False)
-right_frame.pack(side="right", fill="both", expand='True')
+right_panel = ctk.CTkFrame(main_container, fg_color=BG_SIDE, corner_radius=25)
+right_panel.pack(side="right", fill="both", expand=True)
 
-# Coins arrondis visuels (simulation via structure)
-left_frame.config(highlightthickness=0) # Pour garder un look flat et propre
+# -------------------- ✏️ 4. CHAMPS DE SAISIE ----------------------------------------
+ctk.CTkLabel(left_panel, text="STORY INPUTS", font=("SF Pro Display", 18, "bold"), 
+             text_color=ACCENT_COLOR).pack(pady=(25, 15))
 
-# -------------------- ✏️ 4. CREATION DES CHAMPS DE SAISIE ----------------------------------------
-fields = [
-    "Animal Name", "Job", "First Name", "Thing", "Villain Name",
-    "Place", "Silly Name 1", "Silly Name 2", "Funny Phrase",
-    "Object", "Title"
-]
-entries = []
-
-# Header à gauche
-tk.Label(left_frame, text="STORY INPUTS", font=("SF Pro Display", 14, "bold"), 
-         bg=BG_SIDE, fg=TEXT_COLOR).pack(pady=(0, 20))
-
-# Conteneur pour le scroll
-canvas = tk.Canvas(left_frame, bg=BG_SIDE, highlightthickness=0)
-scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=canvas.yview)
-scrollable_frame = tk.Frame(canvas, bg=BG_SIDE)
-
-scrollable_frame.bind(
-    "<Configure>",
-    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-)
-
-canvas.create_window((0, 0), window=scrollable_frame, anchor="nw", width=300)
-canvas.configure(yscrollcommand=scrollbar.set)
-
-canvas.pack(side="left", fill="both", expand=True)
+scroll_frame = ctk.CTkScrollableFrame(left_panel, fg_color="transparent", width=320)
+scroll_frame.pack(fill="both", expand=True, padx=15, pady=10)
 
 # Pour chaque champ :
 for field in fields:
-    label = tk.Label(scrollable_frame, text=field.upper(), **label_style)
-    label.pack(anchor="w", pady=(8, 2))
-    entry = tk.Entry(scrollable_frame, **entry_style)
-    entry.pack(fill="x", pady=(0, 5), ipady=5)
+    ctk.CTkLabel(scroll_frame, text=field.upper(), font=("SF Pro Text", 10, "bold"),
+                 text_color=TEXT_COLOR).pack(anchor="w", padx=15, pady=(12, 2))
+    entry = ctk.CTkEntry(scroll_frame, placeholder_text=f"Enter {field}...",
+                         fg_color=BG_ENTRY, border_color="#475569", 
+                         height=45, corner_radius=12)
+    entry.pack(fill="x", padx=10, pady=(0, 5))
     entries.append(entry)
 
-# -------------------- 🔘 5. Les boutons -----------------------------------------------------------
-button_frame = tk.Frame(left_frame, bg=BG_SIDE)
-button_frame.pack(fill="x", pady=(20, 0))
+# -------------------- 🔘 5. Boutons stylisés Glass ------------------------------------------------
+btn_container = ctk.CTkFrame(left_panel, fg_color="transparent")
+btn_container.pack(fill="x", padx=20, pady=25)
 
-def create_modern_button(parent, text, color, cmd):
-    btn = tk.Button(parent, text=text, command=cmd, 
-                    bg=color, fg="white", font=("SF Pro Text", 11, "bold"), 
-                    relief="flat", cursor="hand2", activebackground=color,
-                    pady=10)
-    btn.pack(fill="x", pady=5)
-    return btn
+def create_btn(text, color, cmd):
+    btn = ctk.CTkButton(btn_container, text=text, command=cmd, 
+                        fg_color=color, hover_color="#047857", 
+                        font=("SF Pro Text", 13, "bold"),
+                        height=50, corner_radius=18)
+    btn.pack(fill="x", pady=6)
 
-create_modern_button(button_frame, "GENERATE MAGIC ✨", GENERATE_COLOR, generate_story)
-create_modern_button(button_frame, "SAVE STORY 💾", SAVE_COLOR, save_story)
-create_modern_button(button_frame, "CLEAR ALL 🧹", RESET_COLOR, reset_fields)
+create_btn("GENERATE MAGIC ✨", GENERATE_COLOR, generate_story)
+create_btn("SAVE STORY 💾", SAVE_COLOR, save_story)
+create_btn("CLEAR ALL 🧹", RESET_COLOR, reset_fields)
 
-# -------------------- 📝 6. Zone d’affichage de l’histoire ----------------------------------------
-title_label = tk.Label(right_frame, text="LIVE STORY PREVIEW", font=("SF Pro Display", 16, "bold"), 
-                       bg=BG_MAIN, fg=ACCENT_COLOR)
-title_label.pack(pady=(0, 15))
+# -------------------- 📝 6. Zone d’affichage ----------------------------------------
+ctk.CTkLabel(right_panel, text="LIVE STORY PREVIEW", font=("SF Pro Display", 22, "bold"), 
+             text_color=ACCENT_COLOR).pack(pady=(25, 10))
 
 # Zone de texte stylisée
-text_container = tk.Frame(right_frame, bg=BG_ENTRY, padx=2, pady=2) # Pour simuler une bordure
-text_container.pack(fill="both", expand=True)
-
-text_output = tk.Text(text_container, wrap="word", font=("Georgia", 14), 
-                      bg=BG_MAIN, fg=TEXT_COLOR, relief="flat", padx=30, pady=30,
-                      spacing1=10, spacing2=5) # Meilleure lisibilité
-text_output.pack(fill="both", expand=True)
+text_output = tk.Text(right_panel, wrap="word", font=("Georgia", 16), 
+                      bg=BG_SIDE, fg=TEXT_COLOR, relief="flat", 
+                      padx=40, pady=40, spacing1=12)
+text_output.pack(fill="both", expand=True, padx=25, pady=25)
 text_output.insert(tk.END, "Your story will appear here...")
 text_output.config(state='disabled')
 
