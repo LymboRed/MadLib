@@ -103,8 +103,20 @@ THEMES_DATA = {
             "'{8}!' roared the Vikings as they charged. "
             "Victory was theirs, and they celebrated in the {5} with plenty of {9}. "
             "The skalds would forever sing the saga of {0}, the {10}."
-        )
+        ),
+        "color": "#38bdf8" # Blue
     }
+}
+
+# Mapping des couleurs par thème
+THEME_COLORS = {
+    "Lion King 🦁": "#fbbf24",     # Jaune ambre
+    "Space Adventure 🚀": "#818cf8", # Indigo
+    "Medieval Tale ⚔️": "#f87171",   # Rouge soft
+    "Cyberpunk 2077 ⚡️": "#f472b6", # Rose Néon
+    "Pirate Legends 🏴‍☠️": "#fb923c", # Orange
+    "Samurai Path 🏮": "#4ade80",   # Vert Jade
+    "Viking Saga 🪓": "#60a5fa",     # Bleu Azur
 }
 
 # Mapping des images locales (à remplir avec vos fichiers)
@@ -178,6 +190,11 @@ def change_theme(choice):
         widget.destroy()
     entries.clear()
     
+    # 🎨 Mise à jour des couleurs dynamiques
+    new_color = THEME_COLORS.get(choice, ACCENT_COLOR)
+    theme_selector.configure(button_color=new_color)
+    progress_bar.configure(progress_color=new_color)
+    
     # 🖼️ Réinitialiser l'image vers le placeholder par défaut du thème
     update_story_image(None)
     progress_bar.pack_forget()
@@ -236,9 +253,14 @@ def generate_story():
     story_text = template.format(*values)
 
     # 🖼️ Mettre à jour l'image du thème (simulé pour l'instant)
-    def complete_generation(pil_img=None):
+def complete_generation(pil_img=None):
         update_story_image(current_theme, pil_img)
         progress_bar.pack_forget()
+        
+        # Couleur dynamique pour le texte mis en évidence
+        current_color = THEME_COLORS.get(current_theme, ACCENT_COLOR)
+        text_output.tag_configure("highlight", foreground=current_color, font=("Georgia", 16, "bold"))
+        
         status_label.configure(text="✅ Magic generation complete!", text_color=GENERATE_COLOR)
         
         # 2. Préparation des segments pour l'animation typewriter AVEC highlighting
