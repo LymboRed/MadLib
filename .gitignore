@@ -3,6 +3,14 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Secrets
+.env
+
+# Project specific
+images/generated_*.png
+mon_histoire.txt
+.venv/
+
 # C extensions
 *.so
 
