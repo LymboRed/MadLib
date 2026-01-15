@@ -1,33 +1,22 @@
 # -------------------- 🧱 1. IMPORTATION DES OUTILS ----------------------------------------
 import tkinter as tk
 from tkinter import messagebox
-import pygame # Pour la musique
 import os
 
-# Initialisation de Pygame Mixer
-pygame.mixer.init()
-
 # -------------------- 🏗️ 2. FONCTIONS PRINCIPALES ------------------------------------------------
-# 🎵 Gérer la musique
-music_playing = False
-
-def toggle_music():
-    global music_playing
-    music_file = "background_music.mp3" # Nom du fichier attendu
-    
-    if not os.path.exists(music_file):
-        messagebox.showinfo("Musique", f"Fichier '{music_file}' introuvable. Ajoutes-en un pour activer la musique !")
+# 💾 Sauvegarder l’histoire
+def save_story():
+    story = text_output.get("1.0", tk.END).strip()
+    if not story:
+        messagebox.showwarning("Sauvegarde", "Génère d'abord une histoire avant de sauvegarder !")
         return
-
-    if not music_playing:
-        pygame.mixer.music.load(music_file)
-        pygame.mixer.music.play(-1) # -1 pour tourner en boucle
-        btn_music.config(text="Stop Music 🔇")
-        music_playing = True
-    else:
-        pygame.mixer.music.stop()
-        btn_music.config(text="Play Music 🎵")
-        music_playing = False
+    
+    try:
+        with open("mon_histoire.txt", "w", encoding="utf-8") as file:
+            file.write(story)
+        messagebox.showinfo("Sauvegarde", "Histoire sauvegardée dans 'mon_histoire.txt' ! ✅")
+    except Exception as e:
+        messagebox.showerror("Erreur", f"Impossible de sauvegarder : {e}")
 
 # 🎬 Générer l’histoire
 # ✅ On vérifie si tous les champs sont remplis. Si non → alerte !
@@ -138,11 +127,11 @@ reset_button = tk.Button(button_frame, text="Reset 🧹", command=reset_fields,
                          relief="flat", cursor="hand2")
 reset_button.pack(fill="x")
 
-# Nouveau bouton pour la musique
-btn_music = tk.Button(button_frame, text="Play Music 🎵", command=toggle_music,
-                      bg="#2196F3", fg="black", font=("Helvetica", 11),
-                      relief="flat", cursor="hand2")
-btn_music.pack(fill="x", pady=(10, 0))
+# Bouton pour sauvegarder l'histoire
+save_button = tk.Button(button_frame, text="Save Story 💾", command=save_story,
+                        bg="#FF9800", fg="black", font=("Helvetica", 11),
+                        relief="flat", cursor="hand2")
+save_button.pack(fill="x", pady=(10, 0))
 
 # -------------------- 📝 6. Zone d’affichage de l’histoire ----------------------------------------
 # C’est ici que l’histoire s’affiche.
