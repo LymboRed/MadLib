@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk # Pour le look ultra-moderne 2025
 import os
+import re
 
 # Configuration globale de CustomTkinter
 ctk.set_appearance_mode("dark")
@@ -12,33 +13,33 @@ ctk.set_default_color_theme("blue")
 # Dictionnaire des thèmes
 THEMES_DATA = {
     "Lion King 🦁": {
-        "fields": ["Animal Name", "Job", "First Name", "Thing", "Villain Name", "Place", "Silly Name 1", "Silly Name 2", "Funny Phrase", "Object", "Title"],
+        "fields": ["Animal Name", "Job", "Father's Name", "Kingdom", "Villain Name", "Exile Place", "Friend 1", "Friend 2", "Funny Phrase", "Weapon", "Title"],
         "template": (
-            "In the heart of the African savannah, a young lion named {} was destined to become a {}. "
-            "One day, his father, King {}, told him: \"Everything the {} touches is our kingdom.\" "
-            "But after a tragic accident caused by {}, he ran away to {}. "
-            "There, he met two unusual friends: {} and {}, who taught him to say {}! "
-            "Years later, he returned to face his past, battle {} with a {}, and reclaim his place as the rightful {}."
+            "In the heart of the African savannah, a young lion named {0} was destined to become a {1}. "
+            "One day, his father, King {2}, told him: \"Everything the {3} touches is our kingdom.\" "
+            "But after a tragic accident caused by {4}, he ran away to {5}. "
+            "There, he met two unusual friends: {6} and {7}, who taught him to say {8}! "
+            "Years later, he returned to face his past, battle {4} with a {9}, and reclaim his place as the rightful {10}."
         )
     },
     "Space Adventure 🚀": {
-        "fields": ["Pilot Name", "Planet", "Mission", "Alien Species", "Ship Name", "Weapon", "Strange Food", "Droid Name", "Galactic Law", "Star System", "Honorary Rank"],
+        "fields": ["Pilot Name", "Target Planet", "Mission Name", "Alien Species", "Ship Name", "Weapon", "Space Food", "Droid Name", "Droid Catchphrase", "Star System", "Honorary Rank"],
         "template": (
-            "Deep in the {}, the brave pilot {} was on a mission to {}. "
-            "After landing on {}, they encountered a friendly {} ship named the {}. "
-            "Suddenly, a swarm of {} attacked! {} grabbed a {} and fought back. "
-            "Their loyal droid {} shouted '{}!' while throwing {} at the enemies. "
-            "In the end, peace was restored, and {} was granted the rank of {}."
+            "Deep in the {9}, the brave pilot {0} was on the '{2}' mission. "
+            "After landing on {1}, they encountered a friendly {3} ship named the {4}. "
+            "Suddenly, a swarm of enemies attacked! {0} grabbed a {5} and fought back. "
+            "Their loyal droid {7} shouted '{8}!' while throwing {6} at the enemies. "
+            "In the end, peace was restored, and {0} was granted the rank of {10}."
         )
     },
     "Medieval Tale ⚔️": {
-        "fields": ["Hero Name", "Kingdom", "Quest", "Mythical Beast", "Magical Item", "Royal Family Member", "Village", "Worst Enemy", "Old Wizard", "Ancient Relic", "Ending Title"],
+        "fields": ["Hero Name", "Kingdom", "Quest", "Mythical Beast", "Magical Item", "Royal Person", "Village", "Worst Enemy", "Old Wizard", "Ancient Relic", "Ending Title"],
         "template": (
-            "In the glorious kingdom of {}, a humble hero named {} set out on a quest to {}. "
-            "Armed only with a {}, they had to face the terrifying {} sent by {}. "
-            "Along the way, they met {}, who gave them a mysterious {}. "
-            "After a long journey through the village of {}, they saved {} and returned home. "
-            "For their bravery, the {} of the Realm now call them the {}."
+            "In the glorious kingdom of {1}, a humble hero named {0} set out on a quest to {2}. "
+            "Armed only with a {4}, they had to face the terrifying {3} sent by {7}. "
+            "Along the way, they met {8}, who gave them a mysterious {9}. "
+            "After a long journey through the village of {6}, they saved {5} and returned home. "
+            "For their bravery, the citizens of the Realm now call them the {10}."
         )
     }
 }
@@ -84,15 +85,23 @@ def generate_story():
     current_theme = theme_selector.get()
     template = THEMES_DATA[current_theme]["template"]
     
-    # Préparation des segments pour l'animation
-    # On découpe le template pour savoir où insérer les mots de l'utilisateur
-    parts = template.split("{}")
+    # 2. Préparation des segments pour l'animation typewriter AVEC highlighting
+    # On utilise re.split pour gérer les {0}, {1}, etc. tout en gardant le texte fixe
+    parts = re.split(r'(\{.*?\})', template)
     full_sequence = [] # Liste de tuples (texte, est_un_mot_utilisateur)
     
-    for i in range(len(parts)):
-        full_sequence.append((parts[i], False))
-        if i < len(values):
-            full_sequence.append((values[i], True))
+    for part in parts:
+        if part.startswith("{") and part.endswith("}"):
+            try:
+                # Extraire l'index numérique entre les accolades
+                idx = int(part[1:-1])
+                if 0 <= idx < len(values):
+                    full_sequence.append((values[idx], True))
+            except ValueError:
+                # Si par hasard il y a un {} sans index
+                pass
+        elif part: # Si le texte fixe n'est pas vide
+            full_sequence.append((part, False))
             
     text_output.config(state='normal')
     text_output.delete("1.0", tk.END)
