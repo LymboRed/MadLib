@@ -45,12 +45,24 @@ def reset_fields():
 # Création de la fenêtre principale, avec un titre
 root = tk.Tk()
 root.title("Mad Libs - Lion King Edition")
-root.geometry("900x500") # Large Window
+root.geometry("900x600") # Un peu plus haut pour accommoder les champs
+root.configure(bg="#f0f0f0") # Couleur de fond gris clair
+
+# Chargement de l'icône (si le fichier existe)
+try:
+    img = tk.PhotoImage(file="icon.png")
+    root.iconphoto(False, img)
+except Exception as e:
+    print(f"Erreur chargement icône : {e}")
+
+# Styles pour les widgets
+label_style = {"bg": "#f0f0f0", "font": ("Helvetica", 10, "bold"), "fg": "#333333"}
+entry_style = {"font": ("Helvetica", 10), "relief": "flat", "highlightthickness": 1, "highlightbackground": "#cccccc"}
 
 # Main Containers
-left_frame = tk.Frame(root, width=360) # 40% of 900 = 360px
-right_frame = tk.Frame(root, width=540) # 60% of 900 = 540px
-left_frame.pack(side="left", fill="both", expand=False)
+left_frame = tk.Frame(root, width=360, bg="#f0f0f0") # 40% of 900 = 360px
+right_frame = tk.Frame(root, width=540, bg="white") # 60% of 900 = 540px
+left_frame.pack(side="left", fill="both", expand=False, padx=20, pady=20)
 right_frame.pack(side="right", fill="both", expand='True')
 
 # -------------------- ✏️ 4. CREATION DES CHAMPS DE SAISIE ----------------------------------------
@@ -62,31 +74,57 @@ fields = [
     "Object", "Title"
 ]
 entries = []
+
+# Conteneur pour le scroll des champs si nécessaire
+canvas = tk.Canvas(left_frame, bg="#f0f0f0", highlightthickness=0)
+scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=canvas.yview)
+scrollable_frame = tk.Frame(canvas, bg="#f0f0f0")
+
+scrollable_frame.bind(
+    "<Configure>",
+    lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+)
+
+canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+canvas.configure(yscrollcommand=scrollbar.set)
+
+canvas.pack(side="left", fill="both", expand=True)
+scrollbar.pack(side="right", fill="both")
+
 # Pour chaque champ :
-# On crée une étiquette (Label)
-# Un champ de saisie (Entry)
-# Et on le garde dans une liste entries pour pouvoir le récupérer plus tard
 for field in fields:
-    label = tk.Label(left_frame, text=field)
-    label.pack(anchor="w", padx=10)
-    entry = tk.Entry(left_frame)
-    entry.pack(fill="x", padx=10, pady=2)
+    label = tk.Label(scrollable_frame, text=field, **label_style)
+    label.pack(anchor="w", pady=(5, 0))
+    entry = tk.Entry(scrollable_frame, **entry_style)
+    entry.pack(fill="x", pady=(0, 5), ipady=3)
     entries.append(entry)
 
 # -------------------- 🔘 5. Les boutons -----------------------------------------------------------
-# Deux boutons :
-# "Generate" lance generate_story
-# "Reset" vide les champs avec reset_fields
-tk.Button(root, text="Generate Story", command=generate_story).pack(pady=10)
-tk.Button(root, text="Reset", command=reset_fields).pack()
+button_frame = tk.Frame(left_frame, bg="#f0f0f0")
+button_frame.pack(fill="x", pady=20)
+
+gen_button = tk.Button(button_frame, text="Generate Story ✨", command=generate_story, 
+                       bg="#4CAF50", fg="black", font=("Helvetica", 11, "bold"), 
+                       relief="flat", cursor="hand2")
+gen_button.pack(fill="x", pady=5)
+
+reset_button = tk.Button(button_frame, text="Reset 🧹", command=reset_fields, 
+                         bg="#f44336", fg="black", font=("Helvetica", 11), 
+                         relief="flat", cursor="hand2")
+reset_button.pack(fill="x")
 
 # -------------------- 📝 6. Zone d’affichage de l’histoire ----------------------------------------
 # C’est ici que l’histoire s’affiche.
 # state='disabled' = empêche l’utilisateur de modifier l’histoire
 # wrap=tk.WORD = coupe les lignes proprement entre les mots
 # --- Right Panel - Text output ---
-text_output = tk.Text(right_frame, wrap="word", font=("Helvetica", 12))
-text_output.pack(fill="both", expand=True, padx=10, pady=10)
+title_label = tk.Label(right_frame, text="Your Story", font=("Helvetica", 16, "bold"), bg="white", fg="#333333")
+title_label.pack(pady=(20, 10))
+
+text_output = tk.Text(right_frame, wrap="word", font=("Helvetica", 13), 
+                      bg="white", fg="#444444", relief="flat", padx=20, pady=20)
+text_output.pack(fill="both", expand=True)
+text_output.config(state='disabled')
 
 # -------------------- 🏁 7. Démarrage de l’application --------------------------------------------
 # 🎬 C’est la boucle principale : elle lance l’interface et la garde ouverte jusqu’à ce que tu fermes la fenêtre.
