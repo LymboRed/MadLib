@@ -1,9 +1,34 @@
-# -------------------- 🧱 1. IMPORTATION DES OUTILS TKINTER ----------------------------------------
-# 🧰 On importe Tkinter pour créer l’interface graphique. messagebox permet d’afficher des alertes, comme "Tu as oublié de remplir un champ !"
+# -------------------- 🧱 1. IMPORTATION DES OUTILS ----------------------------------------
 import tkinter as tk
 from tkinter import messagebox
+import pygame # Pour la musique
+import os
+
+# Initialisation de Pygame Mixer
+pygame.mixer.init()
 
 # -------------------- 🏗️ 2. FONCTIONS PRINCIPALES ------------------------------------------------
+# 🎵 Gérer la musique
+music_playing = False
+
+def toggle_music():
+    global music_playing
+    music_file = "background_music.mp3" # Nom du fichier attendu
+    
+    if not os.path.exists(music_file):
+        messagebox.showinfo("Musique", f"Fichier '{music_file}' introuvable. Ajoutes-en un pour activer la musique !")
+        return
+
+    if not music_playing:
+        pygame.mixer.music.load(music_file)
+        pygame.mixer.music.play(-1) # -1 pour tourner en boucle
+        btn_music.config(text="Stop Music 🔇")
+        music_playing = True
+    else:
+        pygame.mixer.music.stop()
+        btn_music.config(text="Play Music 🎵")
+        music_playing = False
+
 # 🎬 Générer l’histoire
 # ✅ On vérifie si tous les champs sont remplis. Si non → alerte !
 def generate_story():
@@ -112,6 +137,12 @@ reset_button = tk.Button(button_frame, text="Reset 🧹", command=reset_fields,
                          bg="#f44336", fg="black", font=("Helvetica", 11), 
                          relief="flat", cursor="hand2")
 reset_button.pack(fill="x")
+
+# Nouveau bouton pour la musique
+btn_music = tk.Button(button_frame, text="Play Music 🎵", command=toggle_music,
+                      bg="#2196F3", fg="black", font=("Helvetica", 11),
+                      relief="flat", cursor="hand2")
+btn_music.pack(fill="x", pady=(10, 0))
 
 # -------------------- 📝 6. Zone d’affichage de l’histoire ----------------------------------------
 # C’est ici que l’histoire s’affiche.
