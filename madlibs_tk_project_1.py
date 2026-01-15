@@ -56,11 +56,21 @@ def reset_fields():
     text_output.config(state='disabled')
 
 # -------------------- 🖼️ 3. INTERFACE GRAPHIQUE --------------------------------------------------
-# Création de la fenêtre principale, avec un titre
+# Couleurs Modernes (Look 2025+ Dark Mode)
+BG_MAIN = "#0f172a"      # Bleu ardoise très sombre
+BG_SIDE = "#1e293b"      # Bleu ardoise moyen
+BG_ENTRY = "#334155"     # Pour les champs de saisie
+TEXT_COLOR = "#f8fafc"   # Blanc cassé
+ACCENT_COLOR = "#38bdf8" # Bleu ciel brillant
+GENERATE_COLOR = "#10b981" # Vert émeraude
+RESET_COLOR = "#ef4444"    # Rouge corail
+SAVE_COLOR = "#f59e0b"     # Ambre
+
+# Création de la fenêtre principale
 root = tk.Tk()
 root.title("Mad Libs - Lion King Edition")
-root.geometry("900x600") # Un peu plus haut pour accommoder les champs
-root.configure(bg="#f0f0f0") # Couleur de fond gris clair
+root.geometry("1000x650")
+root.configure(bg=BG_MAIN)
 
 # Chargement de l'icône (si le fichier existe)
 try:
@@ -69,19 +79,33 @@ try:
 except Exception as e:
     print(f"Erreur chargement icône : {e}")
 
-# Styles pour les widgets
-label_style = {"bg": "#f0f0f0", "font": ("Helvetica", 10, "bold"), "fg": "#333333"}
-entry_style = {"font": ("Helvetica", 10), "relief": "flat", "highlightthickness": 1, "highlightbackground": "#cccccc"}
+# Styles personnalisés
+label_style = {"bg": BG_SIDE, "fg": ACCENT_COLOR, "font": ("SF Pro Display", 10, "bold")}
+entry_style = {
+    "font": ("SF Pro Text", 11),
+    "bg": BG_ENTRY,
+    "fg": "white",
+    "insertbackground": "white", # Curseur blanc
+    "relief": "flat",
+    "highlightthickness": 1,
+    "highlightbackground": "#475569",
+    "highlightcolor": ACCENT_COLOR
+}
 
-# Main Containers
-left_frame = tk.Frame(root, width=360, bg="#f0f0f0") # 40% of 900 = 360px
-right_frame = tk.Frame(root, width=540, bg="white") # 60% of 900 = 540px
-left_frame.pack(side="left", fill="both", expand=False, padx=20, pady=20)
+# Main Containers with padding
+main_container = tk.Frame(root, bg=BG_MAIN)
+main_container.pack(fill="both", expand=True, padx=20, pady=20)
+
+left_frame = tk.Frame(main_container, width=380, bg=BG_SIDE, padx=20, pady=20)
+right_frame = tk.Frame(main_container, bg=BG_MAIN, padx=20)
+
+left_frame.pack(side="left", fill="both", expand=False)
 right_frame.pack(side="right", fill="both", expand='True')
 
+# Coins arrondis visuels (simulation via structure)
+left_frame.config(highlightthickness=0) # Pour garder un look flat et propre
+
 # -------------------- ✏️ 4. CREATION DES CHAMPS DE SAISIE ----------------------------------------
-# 📋 Liste de tous les types de champs qu’on va demander à l’utilisateur.
-# --- Left Panel - Inputs ---
 fields = [
     "Animal Name", "Job", "First Name", "Thing", "Villain Name",
     "Place", "Silly Name 1", "Silly Name 2", "Funny Phrase",
@@ -89,61 +113,63 @@ fields = [
 ]
 entries = []
 
-# Conteneur pour le scroll des champs si nécessaire
-canvas = tk.Canvas(left_frame, bg="#f0f0f0", highlightthickness=0)
+# Header à gauche
+tk.Label(left_frame, text="STORY INPUTS", font=("SF Pro Display", 14, "bold"), 
+         bg=BG_SIDE, fg=TEXT_COLOR).pack(pady=(0, 20))
+
+# Conteneur pour le scroll
+canvas = tk.Canvas(left_frame, bg=BG_SIDE, highlightthickness=0)
 scrollbar = tk.Scrollbar(left_frame, orient="vertical", command=canvas.yview)
-scrollable_frame = tk.Frame(canvas, bg="#f0f0f0")
+scrollable_frame = tk.Frame(canvas, bg=BG_SIDE)
 
 scrollable_frame.bind(
     "<Configure>",
     lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
 )
 
-canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+canvas.create_window((0, 0), window=scrollable_frame, anchor="nw", width=300)
 canvas.configure(yscrollcommand=scrollbar.set)
 
 canvas.pack(side="left", fill="both", expand=True)
-scrollbar.pack(side="right", fill="both")
 
 # Pour chaque champ :
 for field in fields:
-    label = tk.Label(scrollable_frame, text=field, **label_style)
-    label.pack(anchor="w", pady=(5, 0))
+    label = tk.Label(scrollable_frame, text=field.upper(), **label_style)
+    label.pack(anchor="w", pady=(8, 2))
     entry = tk.Entry(scrollable_frame, **entry_style)
-    entry.pack(fill="x", pady=(0, 5), ipady=3)
+    entry.pack(fill="x", pady=(0, 5), ipady=5)
     entries.append(entry)
 
 # -------------------- 🔘 5. Les boutons -----------------------------------------------------------
-button_frame = tk.Frame(left_frame, bg="#f0f0f0")
-button_frame.pack(fill="x", pady=20)
+button_frame = tk.Frame(left_frame, bg=BG_SIDE)
+button_frame.pack(fill="x", pady=(20, 0))
 
-gen_button = tk.Button(button_frame, text="Generate Story ✨", command=generate_story, 
-                       bg="#4CAF50", fg="black", font=("Helvetica", 11, "bold"), 
-                       relief="flat", cursor="hand2")
-gen_button.pack(fill="x", pady=5)
+def create_modern_button(parent, text, color, cmd):
+    btn = tk.Button(parent, text=text, command=cmd, 
+                    bg=color, fg="white", font=("SF Pro Text", 11, "bold"), 
+                    relief="flat", cursor="hand2", activebackground=color,
+                    pady=10)
+    btn.pack(fill="x", pady=5)
+    return btn
 
-reset_button = tk.Button(button_frame, text="Reset 🧹", command=reset_fields, 
-                         bg="#f44336", fg="black", font=("Helvetica", 11), 
-                         relief="flat", cursor="hand2")
-reset_button.pack(fill="x")
-
-# Bouton pour sauvegarder l'histoire
-save_button = tk.Button(button_frame, text="Save Story 💾", command=save_story,
-                        bg="#FF9800", fg="black", font=("Helvetica", 11),
-                        relief="flat", cursor="hand2")
-save_button.pack(fill="x", pady=(10, 0))
+create_modern_button(button_frame, "GENERATE MAGIC ✨", GENERATE_COLOR, generate_story)
+create_modern_button(button_frame, "SAVE STORY 💾", SAVE_COLOR, save_story)
+create_modern_button(button_frame, "CLEAR ALL 🧹", RESET_COLOR, reset_fields)
 
 # -------------------- 📝 6. Zone d’affichage de l’histoire ----------------------------------------
-# C’est ici que l’histoire s’affiche.
-# state='disabled' = empêche l’utilisateur de modifier l’histoire
-# wrap=tk.WORD = coupe les lignes proprement entre les mots
-# --- Right Panel - Text output ---
-title_label = tk.Label(right_frame, text="Your Story", font=("Helvetica", 16, "bold"), bg="white", fg="#333333")
-title_label.pack(pady=(20, 10))
+title_label = tk.Label(right_frame, text="LIVE STORY PREVIEW", font=("SF Pro Display", 16, "bold"), 
+                       bg=BG_MAIN, fg=ACCENT_COLOR)
+title_label.pack(pady=(0, 15))
 
-text_output = tk.Text(right_frame, wrap="word", font=("Helvetica", 13), 
-                      bg="white", fg="#444444", relief="flat", padx=20, pady=20)
+# Zone de texte stylisée
+text_container = tk.Frame(right_frame, bg=BG_ENTRY, padx=2, pady=2) # Pour simuler une bordure
+text_container.pack(fill="both", expand=True)
+
+text_output = tk.Text(text_container, wrap="word", font=("Georgia", 14), 
+                      bg=BG_MAIN, fg=TEXT_COLOR, relief="flat", padx=30, pady=30,
+                      spacing1=10, spacing2=5) # Meilleure lisibilité
 text_output.pack(fill="both", expand=True)
+text_output.insert(tk.END, "Your story will appear here...")
 text_output.config(state='disabled')
 
 # -------------------- 🏁 7. Démarrage de l’application --------------------------------------------
