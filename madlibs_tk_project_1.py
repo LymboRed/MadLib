@@ -74,7 +74,7 @@ def save_story():
     except Exception as e:
         messagebox.showerror("Erreur", f"Impossible de sauvegarder : {e}")
 
-# 🎬 Générer l’histoire
+# 🎬 Générer l’histoire avec animation Typewriter et Highlighting
 def generate_story():
     values = [entry.get() for entry in entries]
     if not all(values):
@@ -84,13 +84,45 @@ def generate_story():
     current_theme = theme_selector.get()
     template = THEMES_DATA[current_theme]["template"]
     
-    # On insère les valeurs dans le template du thème actuel
-    story = template.format(*values)
+    # Préparation des segments pour l'animation
+    # On découpe le template pour savoir où insérer les mots de l'utilisateur
+    parts = template.split("{}")
+    full_sequence = [] # Liste de tuples (texte, est_un_mot_utilisateur)
     
+    for i in range(len(parts)):
+        full_sequence.append((parts[i], False))
+        if i < len(values):
+            full_sequence.append((values[i], True))
+            
     text_output.config(state='normal')
     text_output.delete("1.0", tk.END)
-    text_output.insert(tk.END, story)
-    text_output.config(state='disabled')
+    
+    # Fonction récursive pour l'effet d'écriture
+    def type_writer(seq_idx, char_idx):
+        if seq_idx >= len(full_sequence):
+            text_output.config(state='disabled')
+            return
+        
+        content, is_val = full_sequence[seq_idx]
+        
+        if char_idx < len(content):
+            char = content[char_idx]
+            text_output.insert(tk.END, char)
+            
+            # Si c'est un mot utilisateur, on applique le style "highlight"
+            if is_val:
+                # Applique le tag sur le dernier caractère inséré
+                end_pos = text_output.index("end-1c")
+                start_pos = f"{end_pos.split('.')[0]}.{int(end_pos.split('.')[1])-1}"
+                text_output.tag_add("highlight", start_pos, end_pos)
+            
+            text_output.see(tk.END) # Scroll automatique
+            root.after(15, type_writer, seq_idx, char_idx + 1)
+        else:
+            # Passe au segment suivant
+            type_writer(seq_idx + 1, 0)
+
+    type_writer(0, 0)
 # 🔄 Réinitialiser les champs
 # 🧹 Vide tous les champs de texte
 def reset_fields():
@@ -195,6 +227,10 @@ text_output = tk.Text(right_panel, wrap="word", font=("Georgia", 16),
                       bg=BG_SIDE, fg=TEXT_COLOR, relief="flat", 
                       padx=40, pady=40, spacing1=12)
 text_output.pack(fill="both", expand=True, padx=25, pady=25)
+
+# Configuration du style pour les mots mis en évidence (Highlight)
+text_output.tag_configure("highlight", foreground=ACCENT_COLOR, font=("Georgia", 16, "bold"))
+
 text_output.insert(tk.END, "Your story will appear here...")
 text_output.config(state='disabled')
 
