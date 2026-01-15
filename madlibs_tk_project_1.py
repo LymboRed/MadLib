@@ -13,7 +13,8 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 # Charger les variables d'environnement depuis le fichier .env
-load_dotenv()
+# override=True permet d'écraser les variables d'environnement si elles existent déjà
+load_dotenv(override=True)
 
 # Configuration globale de CustomTkinter
 ctk.set_appearance_mode("dark")
@@ -24,10 +25,18 @@ ctk.set_default_color_theme("blue")
 # NE PARTAGE JAMAIS TON FICHIER .env SUR GITHUB
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY") 
 
+# Debug: Affiche si la clé est détectée (SANS l'afficher en entier)
+if OPENAI_API_KEY:
+    print(f"DEBUG: API Key detected (Starts with: {OPENAI_API_KEY[:8]}...)")
+else:
+    print("DEBUG: No API Key found in environment or .env file.")
+
 # Initialisation du client OpenAI (sera configuré si la clé est présente)
 client = None
-if OPENAI_API_KEY:
+if OPENAI_API_KEY and not OPENAI_API_KEY.startswith("sk-votre"):
     client = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    print("DEBUG: OpenAI Client NOT initialized (Key is missing or is still a placeholder)")
 
 # Dictionnaire des thèmes
 THEMES_DATA = {
@@ -39,7 +48,8 @@ THEMES_DATA = {
             "But after a tragic accident caused by {4}, he ran away to {5}. "
             "There, he met two unusual friends: {6} and {7}, who taught him to say {8}! "
             "Years later, he returned to face his past, battle {4} with a {9}, and reclaim his place as the rightful {10}."
-        )
+        ),
+        "visual_template": "A majestic lion standing on a grand natural rock overlooking a vast African savannah ecosystem. Royal atmosphere, golden hour sun, cinematic high-quality digital animation style."
     },
     "Space Adventure 🚀": {
         "fields": ["Pilot Name", "Target Planet", "Mission Name", "Alien Species", "Ship Name", "Weapon", "Space Food", "Droid Name", "Droid Catchphrase", "Star System", "Honorary Rank"],
@@ -49,7 +59,8 @@ THEMES_DATA = {
             "Suddenly, a swarm of enemies attacked! {0} grabbed a {5} and fought back. "
             "Their loyal droid {7} shouted '{8}!' while throwing {6} at the enemies. "
             "In the end, peace was restored, and {0} was granted the rank of {10}."
-        )
+        ),
+        "visual_template": "A high-tech futuristic explorer ship flying through a glowing colorful galactic nebula. Stars and planets in the background, epic space opera style, digital painting."
     },
     "Medieval Tale ⚔️": {
         "fields": ["Hero Name", "Kingdom", "Quest", "Mythical Beast", "Magical Item", "Royal Person", "Village", "Worst Enemy", "Old Wizard", "Ancient Relic", "Ending Title"],
@@ -59,9 +70,10 @@ THEMES_DATA = {
             "Along the way, they met {8}, who gave them a mysterious {9}. "
             "After a long journey through the village of {6}, they saved {5} and returned home. "
             "For their bravery, the citizens of the Realm now call them the {10}."
-        )
+        ),
+        "visual_template": "An epic fantasy hero standing before a magnificent castle with banners flying. Mythical landscapes, legendary quest atmosphere, oil painting art style."
     },
-    "Cyberpunk 2077 ⚡️": {
+    "Cyberpunk Neon ⚡️": {
         "fields": ["Netrunner Alias", "Megacity District", "Corporate Name", "Augmentation", "Hack Name", "Fixer Name", "Contact Person", "Vehicle", "Hidden Base", "Neural Chip", "Street Cred Rank"],
         "template": (
             "In the neon-drenched streets of {1}, the legendary netrunner {0} was planning a heist against {2}. "
@@ -70,7 +82,8 @@ THEMES_DATA = {
             "They hopped on their {7} and sped through the city. "
             "After a high-speed chase, they successfully stole the {9}. "
             "Word spread across the Net, and {0} was finally recognized as a {10}."
-        )
+        ),
+        "visual_template": "A futuristic city at night with massive neon billboards in pink and blue. Rain reflecting on asphalt, aesthetic synthwave atmosphere, hyper-detailed digital art."
     },
     "Pirate Legends 🏴‍☠️": {
         "fields": ["Captain Name", "Pirate Ship", "Hidden Island", "Sea Monster", "Treasure Type", "Enemy Admiral", "Crew Member", "Signature Drink", "Battle Cry", "First Mate", "Legendary Title"],
@@ -81,7 +94,8 @@ THEMES_DATA = {
             "After defeating the beast, they shared a round of {7} with {6}. "
             "However, Admiral {5} was hot on their trail. "
             "The battle was fierce, but {0} escaped and became known as the {10} of the Seven Seas."
-        )
+        ),
+        "visual_template": "An old wooden pirate ship with white sails on a turquoise ocean. Tropical island with palm trees in the background, adventure art style, golden hour lighting."
     },
     "Samurai Path 🏮": {
         "fields": ["Samurai Name", "Feudal Lord", "Clan Name", "Legendary Katana", "Village Name", "Arch Rival", "Favorite Tea", "Zen Saying", "Battle Location", "Special Technique", "Honor Title"],
@@ -92,7 +106,8 @@ THEMES_DATA = {
             "Before the fight, {0} sat calmly drinking {6} and whispered: '{7}'. "
             "With a swift '{9}' move, the battle was won. "
             "From that day on, {0} was honored with the title of {10}."
-        )
+        ),
+        "visual_template": "A lone samurai in traditional armor standing in a field of cherry blossoms (sakura). Ancient Japanese architecture in the mist, Zen atmosphere, artistic digital illustration."
     },
     "Viking Saga 🪓": {
         "fields": ["Viking Leader", "Longship Name", "Target Kingdom", "Norse God", "Weapon", "Great Hall", "Rival Jarl", "Beast", "War Cry", "Feast Food", "Saga Title"],
@@ -104,7 +119,7 @@ THEMES_DATA = {
             "Victory was theirs, and they celebrated in the {5} with plenty of {9}. "
             "The skalds would forever sing the saga of {0}, the {10}."
         ),
-        "color": "#38bdf8" # Blue
+        "visual_template": "A majestic viking longship on a dark sea under a green aurora borealis. Snowy mountains and fjords, epic Norse mythology aesthetic, cinematic digital art."
     }
 }
 
@@ -113,7 +128,7 @@ THEME_COLORS = {
     "Lion King 🦁": "#fbbf24",     # Jaune ambre
     "Space Adventure 🚀": "#818cf8", # Indigo
     "Medieval Tale ⚔️": "#f87171",   # Rouge soft
-    "Cyberpunk 2077 ⚡️": "#f472b6", # Rose Néon
+    "Cyberpunk Neon ⚡️": "#f472b6", # Rose Néon
     "Pirate Legends 🏴‍☠️": "#fb923c", # Orange
     "Samurai Path 🏮": "#4ade80",   # Vert Jade
     "Viking Saga 🪓": "#60a5fa",     # Bleu Azur
@@ -137,7 +152,8 @@ def update_story_image(theme=None, pil_img=None):
     
     if pil_img:
         try:
-            ctk_img = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(500, 200))
+            # On passe à un format CARRE plus grand (600x600) pour mieux voir l'IA
+            ctk_img = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(600, 600))
             story_image_label.configure(image=ctk_img, text="")
             return
         except Exception as e:
@@ -147,7 +163,8 @@ def update_story_image(theme=None, pil_img=None):
     if img_path and os.path.exists(img_path):
         try:
             pil_img = Image.open(img_path)
-            ctk_img = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(500, 200))
+            # Les images par défaut des thèmes restent en 512x200 ou s'adaptent au nouveau format carré
+            ctk_img = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(600, 250))
             story_image_label.configure(image=ctk_img, text="")
         except Exception as e:
             story_image_label.configure(image=None, text=f"Error loading {theme} image ❌")
@@ -157,30 +174,44 @@ def update_story_image(theme=None, pil_img=None):
 
 # 🤖 Fonction pour appeler l'IA OpenAI dans un thread séparé
 def fetch_ai_image(prompt, callback):
+    print(f"DEBUG: Starting AI Generation for prompt: {prompt[:100]}...")
     try:
         if not client:
+            print("DEBUG: Client OpenAI not initialized (Check your .env and API Key)")
             root.after(0, lambda: callback(None))
             return
 
+        # Appel à DALL-E 3
+        # On utilise le prompt formaté qui est déjà visuel et sûr
         response = client.images.generate(
             model="dall-e-3",
-            prompt=f"A cinematic and artistic illustration of this scene: {prompt}. High resolution, digital art style.",
+            prompt=f"{prompt} High resolution, artistic style, masterpiece.",
             size="1024x1024",
             quality="standard",
             n=1,
         )
         image_url = response.data[0].url
+        print(f"DEBUG: Image generated successfully! URL: {image_url}")
+        
         img_data = requests.get(image_url).content
         pil_img = Image.open(BytesIO(img_data))
         
-        # Sauvegarder localement pour l'historique
+        # Sauvegarder localement dans un dossier 'images' s'il existe
+        if not os.path.exists("images"):
+            os.makedirs("images")
+            
         filename = f"images/generated_{int(datetime.datetime.now().timestamp())}.png"
         pil_img.save(filename)
+        print(f"DEBUG: Image saved to {filename}")
         
         # Retourner à l'UI thread pour mettre à jour
         root.after(0, lambda: callback(pil_img))
     except Exception as e:
-        print(f"AI Error: {e}")
+        print(f"DEBUG: AI Error occurred: {e}")
+        # Message spécifique pour la violation de politique
+        if "policy" in str(e).lower() or "safety" in str(e).lower():
+            print("DEBUG: Safety filter triggered. The prompt was considered non-compliant.")
+            root.after(0, lambda: status_label.configure(text="⚠️ AI Safety: Prompt was rejected. Try milder words.", text_color="red"))
         root.after(0, lambda: callback(None))
 
 # Fonction pour changer de thème
@@ -249,8 +280,13 @@ def generate_story():
     progress_bar.pack(fill="x", padx=100, pady=(0, 20))
     
     # Prépare le template final pour l'IA
-    template = THEMES_DATA[current_theme]["template"]
+    theme_entry = THEMES_DATA[current_theme]
+    template = theme_entry["template"]
     story_text = template.format(*values)
+    
+    # 🖼️ Prépare un prompt visuel SÛR pour l'IA (évite les violations de politique)
+    visual_template = theme_entry.get("visual_template", "A cinematic scene representing {0}")
+    visual_text = visual_template.format(*values)
 
     # 🖼️ Mettre à jour l'image du thème
     def complete_generation(pil_img=None):
@@ -309,7 +345,7 @@ def generate_story():
     def start_ai_thread():
         if client:
             status_label.configure(text="🎨 AI is drawing your story... (Wait ~15s)", text_color=ACCENT_COLOR)
-            thread = threading.Thread(target=fetch_ai_image, args=(story_text, complete_generation))
+            thread = threading.Thread(target=fetch_ai_image, args=(visual_text, complete_generation))
             thread.daemon = True
             thread.start()
         else:
@@ -354,8 +390,8 @@ RESET_COLOR = "#dc2626"    # Rouge sombre
 # Fenêtre principale
 root = ctk.CTk()
 root.title("Mad Libs - Ultimate Multi-Theme Edition")
-root.geometry("1100x850")
-root.minsize(1100, 850) # Empêche de réduire la fenêtre trop petit pour voir les boutons
+root.geometry("1100x950")
+root.minsize(1100, 900) # Empêche de réduire la fenêtre trop petit pour voir les boutons
 root.configure(fg_color=BG_MAIN)
 
 # Chargement de l'icône (si le fichier existe)
@@ -403,27 +439,34 @@ progress_bar = ctk.CTkProgressBar(right_panel, width=400, height=12, corner_radi
                                    progress_color=ACCENT_COLOR, fg_color=BG_ENTRY)
 progress_bar.set(0)
 
-# 🖼️ Zone pour l'image (Placeholder pour l'instant)
-image_container = ctk.CTkFrame(right_panel, fg_color="transparent", height=250)
-image_container.pack(fill="x", padx=25, pady=5)
+# Zone de texte stylisée (Désormais EN HAUT)
+text_container = ctk.CTkFrame(right_panel, fg_color="transparent")
+text_container.pack(fill="x", expand=False, padx=25, pady=(10, 0))
 
-story_image_label = ctk.CTkLabel(image_container, text="Illustration will appear here when you generate magic ✨", 
-                                 font=("SF Pro Text", 12, "italic"),
-                                 fg_color=BG_ENTRY, corner_radius=20,
-                                 height=200, width=500)
-story_image_label.pack(expand=True)
-
-# Zone de texte stylisée
-text_output = tk.Text(right_panel, wrap="word", font=("Georgia", 16), 
+text_output = tk.Text(text_container, wrap="word", font=("Georgia", 16), 
                       bg=BG_SIDE, fg=TEXT_COLOR, relief="flat", 
-                      padx=40, pady=40, spacing1=12)
-text_output.pack(fill="both", expand=True, padx=25, pady=25)
+                      padx=40, pady=20, spacing1=12, height=8)
+text_output.pack(side="left", fill="both", expand=True)
+
+# Petite barre de défilement discrète pour le texte
+text_scroll = ctk.CTkScrollbar(text_container, command=text_output.yview, width=12)
+text_output.configure(yscrollcommand=text_scroll.set)
+text_scroll.pack(side="right", fill="y")
 
 # Configuration du style pour les mots mis en évidence (Highlight)
 text_output.tag_configure("highlight", foreground=ACCENT_COLOR, font=("Georgia", 16, "bold"))
 
 text_output.insert(tk.END, "Your story will appear here...")
 text_output.config(state='disabled')
+
+# 🖼️ Zone pour l'image (Désormais EN BAS)
+image_container = ctk.CTkFrame(right_panel, fg_color="transparent")
+image_container.pack(fill="both", expand=True, padx=25, pady=20)
+
+story_image_label = ctk.CTkLabel(image_container, text="Illustration will appear here when you generate magic ✨", 
+                                 font=("SF Pro Text", 12, "italic"),
+                                 fg_color=BG_ENTRY, corner_radius=20)
+story_image_label.pack(expand=True, fill="both")
 
 # -------------------- ✏️ 4. CHAMPS DE SAISIE ----------------------------------------
 ctk.CTkLabel(left_panel, text="SELECT THEME", font=("SF Pro Display", 16, "bold"), 
