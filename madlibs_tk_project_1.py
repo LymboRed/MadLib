@@ -252,8 +252,8 @@ def generate_story():
     template = THEMES_DATA[current_theme]["template"]
     story_text = template.format(*values)
 
-    # 🖼️ Mettre à jour l'image du thème (simulé pour l'instant)
-def complete_generation(pil_img=None):
+    # 🖼️ Mettre à jour l'image du thème
+    def complete_generation(pil_img=None):
         update_story_image(current_theme, pil_img)
         progress_bar.pack_forget()
         
